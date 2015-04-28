@@ -89,6 +89,8 @@ sub execute {
     my $indices_pulled = 0;
     open( my $output, ">", $opt->{output} ) if !$opt->{countonly};
 
+    say $output "query: `$query`\tindices: `" . join( ' ', @indices ) . "`";
+
     for my $index (@indices) {
         my $scroll = $elastic->scroll_helper(
             index       => $index,
@@ -101,8 +103,6 @@ sub execute {
         print STDERR "\n" if !$opt->{countonly};
 
         next if $opt->{countonly};
-
-        say $output "query: `$query`\tindices: `" . join( ' ', @indices ) . "`";
 
         my $docs_done     = 0;
         my $docs_progress = Term::ProgressBar->new(
