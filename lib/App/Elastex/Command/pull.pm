@@ -89,7 +89,8 @@ sub execute {
     my $indices_pulled = 0;
     open( my $output, ">", $opt->{output} ) if !$opt->{countonly};
 
-    say $output "query: `$query`\tindices: `" . join( ' ', @indices ) . "`";
+    say $output "query: `$query`\tindices: `" . join( ' ', @indices ) . "`"
+      if !$opt->{countonly};
 
     for my $index (@indices) {
         my $scroll = $elastic->scroll_helper(
