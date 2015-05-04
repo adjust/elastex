@@ -20,6 +20,7 @@ sub usage_desc { "elastex pull [options] query" }
 sub opt_spec {
     my ( $self, $app ) = @_;
     return (
+        $self->SUPER::opt_spec(),
         [
             "host|H=s",
             "the Elasticsearch host to connect to",
@@ -30,7 +31,6 @@ sub opt_spec {
             "the Elasticsearch port to connect to (default:9200)",
             { default => 9200 }
         ],
-        [ "progress|p", "show progress bar" ],
         [ "output|o=s", "output file", { default => "results" } ],
         [
             "batchsize=i",
@@ -38,22 +38,6 @@ sub opt_spec {
             { default => 1000 }
         ],
         [ "countonly", "only count the hits, but do not retrieve anything", ],
-        [
-            "timezone|t=s",
-            "timezone to use for `from` and `to` fields (default: UTC)",
-            { default => 'UTC' }
-        ],
-        [ "from=s", "start of the timerange", { required => 1 } ],
-        [
-            "to=s",
-            "end of the timerange (default: now)",
-            { default => DateTime->now }
-        ],
-        [
-            "period=s",
-            "period to dump at each iteration (hourly or [daily])",
-            { default => 'daily' }
-        ],
         [
             "prefix=s",
             "index name prefix, don't forget the trailing `-`",

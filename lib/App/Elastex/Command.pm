@@ -11,6 +11,28 @@ use Date::Parse;
 use DateTime::Format::Strptime;
 use DateTime::Set;
 
+sub opt_spec {
+    return (
+        [
+            "timezone|t=s",
+            "timezone to use for `from` and `to` fields (default: UTC)",
+            { default => 'UTC' }
+        ],
+        [ "from=s", "start of the timerange", { required => 1 } ],
+        [
+            "to=s",
+            "end of the timerange (default: now)",
+            { default => DateTime->now }
+        ],
+        [
+            "period=s",
+            "period to dump at each iteration (hourly or [daily])",
+            { default => 'daily' }
+        ],
+        [ "progress|p", "show progress bar" ],
+    );
+}
+
 sub compile_indices {
     my ( $self, $opt ) = @_;
     my @dates = $self->compile_dates($opt);
