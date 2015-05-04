@@ -21,16 +21,6 @@ sub opt_spec {
     my ( $self, $app ) = @_;
     return (
         $self->SUPER::opt_spec(),
-        [
-            "host|H=s",
-            "the Elasticsearch host to connect to",
-            { required => 1, default => $app->config->{host} }
-        ],
-        [
-            "port|P=i",
-            "the Elasticsearch port to connect to (default:9200)",
-            { default => 9200 }
-        ],
         [ "output|o=s", "output file", { default => "results" } ],
         [
             "batchsize=i",
@@ -38,11 +28,6 @@ sub opt_spec {
             { default => 1000 }
         ],
         [ "countonly", "only count the hits, but do not retrieve anything", ],
-        [
-            "prefix=s",
-            "index name prefix, don't forget the trailing `-`",
-            { required => 1, default => $app->config->{prefix} }
-        ],
     );
 }
 
@@ -51,7 +36,7 @@ sub execute {
     my $query = join ' ', @$args;
     my @indices = $self->SUPER::compile_indices(
         {
-            prefix   => $opt->prefix,
+            prefix   => $self->app->global_options->prefix,
             from     => $opt->from,
             to       => $opt->to,
             timezone => $opt->timezone,
@@ -64,7 +49,9 @@ sub execute {
     my $total_hit_count;
 
     my $elastic = Search::Elasticsearch->new(
-        nodes  => "$opt->{host}:$opt->{port}",
+        nodes => join( ':',
+            $self->app->global_options->host,
+            $self->app->global_options->port ),
         client => 'Direct',
     );
 
