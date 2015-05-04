@@ -8,3 +8,10 @@ We often needed to export raw source data from our Elasticsearch cluster. As the
 - both ends of a time range can be specified
 
 So at least until we can send pull requests for other tools to implement those, we decided to just quickly roll our own.
+
+## Installation
+
+elastex can be installed directly from the repository with [Dist::Zilla](https://metacpan.org/pod/Dist::Zilla) and [cpanm](https://metacpan.org/pod/App::cpanminus):
+
+ 1. `dzil authordeps --missing | cpanm`
+ 2. `dzil install`
