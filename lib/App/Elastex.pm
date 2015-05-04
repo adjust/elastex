@@ -10,7 +10,6 @@ use warnings;
 use App::Cmd::Setup -app;
 
 use Config::Any;
-use Data::Dumper;
 
 sub global_opt_spec {
     my $self = shift;
