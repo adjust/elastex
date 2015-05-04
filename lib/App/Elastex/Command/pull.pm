@@ -27,7 +27,6 @@ sub opt_spec {
             "batchsize of retrieval (default: 1000)",
             { default => 1000 }
         ],
-        [ "countonly", "only count the hits, but do not retrieve anything", ],
     );
 }
 
@@ -46,7 +45,6 @@ sub execute {
 
     my $index_count = scalar @indices;
     my $json        = JSON::MaybeXS->new();
-    my $total_hit_count;
 
     my $elastic = Search::Elasticsearch->new(
         nodes => join( ':',
@@ -64,10 +62,9 @@ sub execute {
     );
 
     my $indices_pulled = 0;
-    open( my $output, ">", $opt->{output} ) if !$opt->{countonly};
+    open( my $output, ">", $opt->{output} );
 
-    say $output "query: `$query`\tindices: `" . join( ' ', @indices ) . "`"
-      if !$opt->{countonly};
+    say $output "query: `$query`\tindices: `" . join( ' ', @indices ) . "`";
 
     for my $index (@indices) {
         my $scroll = $elastic->scroll_helper(
@@ -75,21 +72,17 @@ sub execute {
             q           => $query,
             search_type => 'scan',
         );
-        $indices_pulled  += 1;
-        $total_hit_count += $scroll->total;
-        $index_progress->update($indices_pulled);
-        print STDERR "\n" if !$opt->{countonly};
 
-        next if $opt->{countonly};
+        $indices_pulled += 1;
+        $index_progress->update($indices_pulled);
+        print STDERR "\n";
 
         my $docs_done     = 0;
         my $docs_progress = Term::ProgressBar->new(
             {
                 name   => 'documents',
                 count  => $scroll->total,
-                silent => !$opt->{progress}
-                  || $opt->{countonly}
-                  || $scroll->total == 0,
+                silent => !$opt->{progress} || $scroll->total == 0,
             }
         );
         $docs_progress->minor(0);
@@ -108,8 +101,6 @@ sub execute {
             print STDERR "\e[A";
         }
     }
-
-    say "TOTAL HITS: $total_hit_count" if $opt->{countonly};
 }
 
 1;
