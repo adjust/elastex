@@ -66,7 +66,7 @@ sub execute {
     );
 
     my $indices_pulled = 0;
-    open( my $output, ">", $opt->{output} );
+    open( my $output, ">:encoding(UTF-8)", $opt->{output} );
 
     say $output "query: `$query`\tindices: `" . join( ' ', @indices ) . "`";
 
