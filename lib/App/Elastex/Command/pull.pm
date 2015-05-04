@@ -172,7 +172,7 @@ sub compile_dates {
         push @dates, $date;
     }
 
-    return @dates;
+    return map { "$_" } @dates;
 }
 
 1;
