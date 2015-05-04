@@ -15,3 +15,13 @@ elastex can be installed directly from the repository with [Dist::Zilla](https:/
 
  1. `dzil authordeps --missing | cpanm`
  2. `dzil install`
+
+## Built-in help
+
+If you need to quickly check what commands and options are there, just use the built-in help system:
+
+`elastex help`
+
+Or for a specific command:
+
+`elastex help command`
