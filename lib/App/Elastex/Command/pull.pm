@@ -11,9 +11,6 @@ use autodie;
 
 use App::Elastex -command;
 
-use Date::Parse;
-use DateTime::Format::Strptime;
-use DateTime::Set;
 use JSON::MaybeXS;
 use Search::Elasticsearch;
 use Term::ProgressBar;
@@ -67,8 +64,17 @@ sub opt_spec {
 
 sub execute {
     my ( $self, $opt, $args ) = @_;
-    my $query       = join ' ', @$args;
-    my @indices     = compile_indices($opt);
+    my $query = join ' ', @$args;
+    my @indices = $self->SUPER::compile_indices(
+        {
+            prefix   => $opt->prefix,
+            from     => $opt->from,
+            to       => $opt->to,
+            timezone => $opt->timezone,
+            period   => $opt->period,
+        }
+    );
+
     my $index_count = scalar @indices;
     my $json        = JSON::MaybeXS->new();
     my $total_hit_count;
@@ -133,46 +139,6 @@ sub execute {
     }
 
     say "TOTAL HITS: $total_hit_count" if $opt->{countonly};
-}
-
-sub compile_indices {
-    my $opt   = shift;
-    my @dates = compile_dates($opt);
-
-    return map { $opt->{prefix} . $_ } @dates;
-}
-
-sub compile_dates {
-    my $opt = shift;
-    my $start =
-      DateTime->from_epoch(
-        epoch => str2time( $opt->{from}, $opt->{timezone} ) );
-    my $end =
-      DateTime->from_epoch( epoch => str2time( $opt->{to}, $opt->{timezone} ) );
-
-    my $dates = DateTime::Set->from_recurrence(
-        start      => $start->truncate( to => 'hour' ),
-        end        => $end->truncate( to   => 'hour' ),
-        recurrence => sub {
-            $opt->{period} eq 'hourly'
-              ? return $_[0]->truncate( to => 'hour' )->add( hours => 1 )
-              : return $_[0]->truncate( to => 'day' )->add( days => 1 );
-        },
-    );
-
-    my $iterator = $dates->iterator;
-    my $formatter =
-      $opt->{period} eq 'hourly'
-      ? DateTime::Format::Strptime->new( pattern => '%Y.%m.%d.%H' )
-      : DateTime::Format::Strptime->new( pattern => '%Y.%m.%d*' );
-    my @dates;
-
-    while ( my $date = $iterator->next ) {
-        $date->set_formatter($formatter);
-        push @dates, $date;
-    }
-
-    return map { "$_" } @dates;
 }
 
 1;

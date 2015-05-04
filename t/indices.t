@@ -7,8 +7,9 @@ use Test::More tests => 4;
 use App::Elastex::Command;
 
 {
-    my @dates = App::Elastex::Command->compile_dates(
+    my @dates = App::Elastex::Command->compile_indices(
         {
+            prefix   => 'logstash-',
             from     => '2014-04-27',
             to       => '2014-04-27',
             period   => 'daily',
@@ -16,12 +17,13 @@ use App::Elastex::Command;
         }
     );
 
-    is_deeply \@dates, [qw(2014.04.27*)], 'single day with daily';
+    is_deeply \@dates, [qw(logstash-2014.04.27*)], 'single daily index';
 }
 
 {
-    my @dates = App::Elastex::Command->compile_dates(
+    my @dates = App::Elastex::Command->compile_indices(
         {
+            prefix   => 'logstash-',
             from     => '2014-04-27',
             to       => '2014-04-28',
             period   => 'daily',
@@ -29,13 +31,14 @@ use App::Elastex::Command;
         }
     );
 
-    is_deeply \@dates, [qw(2014.04.27* 2014.04.28*)],
-      'multiple days with daily';
+    is_deeply \@dates, [qw(logstash-2014.04.27* logstash-2014.04.28*)],
+      'multiple daily indices';
 }
 
 {
-    my @dates = App::Elastex::Command->compile_dates(
+    my @dates = App::Elastex::Command->compile_indices(
         {
+            prefix   => 'logstash-',
             from     => '2014-04-27 00:00:00',
             to       => '2014-04-27 00:00:00',
             period   => 'hourly',
@@ -43,12 +46,13 @@ use App::Elastex::Command;
         }
     );
 
-    is_deeply \@dates, [qw(2014.04.27.00)], 'multiple hours with hourly';
+    is_deeply \@dates, [qw(logstash-2014.04.27.00)], 'single hourly index';
 }
 
 {
-    my @dates = App::Elastex::Command->compile_dates(
+    my @dates = App::Elastex::Command->compile_indices(
         {
+            prefix   => 'logstash-',
             from     => '2014-04-27 00:00:00',
             to       => '2014-04-27 01:00:00',
             period   => 'hourly',
@@ -56,6 +60,6 @@ use App::Elastex::Command;
         }
     );
 
-    is_deeply \@dates, [qw(2014.04.27.00 2014.04.27.01)],
-      'multiple hours with hourly';
+    is_deeply \@dates, [qw(logstash-2014.04.27.00 logstash-2014.04.27.01)],
+      'multiple hourly indices';
 }
