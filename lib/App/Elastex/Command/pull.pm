@@ -21,7 +21,11 @@ sub opt_spec {
     my ( $self, $app ) = @_;
     return (
         $self->SUPER::opt_spec(),
-        [ "output|o=s", "output file", { default => "results" } ],
+        [
+            "output|o=s",
+            "output file (default: results)",
+            { default => "results" }
+        ],
         [
             "batchsize=i",
             "batchsize of retrieval (default: 1000)",
