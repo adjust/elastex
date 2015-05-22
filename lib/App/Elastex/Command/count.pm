@@ -36,7 +36,6 @@ sub execute {
         nodes => join( ':',
             $self->app->global_options->host,
             $self->app->global_options->port ),
-        client => 'Direct',
     );
 
     my $index_progress = Term::ProgressBar->new(
