@@ -64,7 +64,8 @@ sub execute {
         }
     );
 
-    my $indices_pulled = 0;
+    my $indices_pulled  = 0;
+    my $total_hit_count = 0;
     open( my $output, ">:encoding(UTF-8)", $opt->{output} );
 
     say $output "query: `$query`\tindices: `" . join( ' ', @indices ) . "`";
@@ -76,7 +77,8 @@ sub execute {
             search_type => 'scan',
         );
 
-        $indices_pulled += 1;
+        $indices_pulled  += 1;
+        $total_hit_count += $scroll->total;
         $index_progress->update($indices_pulled);
         print STDERR "\n";
 
@@ -104,6 +106,8 @@ sub execute {
             print STDERR "\e[A";
         }
     }
+
+    say 'No results found.' if $total_hit_count == 0;
 }
 
 1;
