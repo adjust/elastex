@@ -39,6 +39,9 @@ sub get_config_files {
     if ( defined $self->global_options->{config} ) {
         push @config_files, $self->global_options->{config};
     }
+    elsif ( defined $ENV{ELASTEXRC} ) {
+        push @config_files, $ENV{ELASTEXRC};
+    }
     else {
         push @config_files, File::Spec->join( cwd(), 'config.yml' );
         push @config_files,
