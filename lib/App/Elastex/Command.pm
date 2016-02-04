@@ -12,7 +12,26 @@ use DateTime::Format::Strptime;
 use DateTime::Set;
 
 sub opt_spec {
+    my ( $self, $app ) = @_;
+
+    $app->config;
+
     return (
+        [
+            "host|H=s",
+            "the Elasticsearch host to connect to",
+            { required => 1, default => $app->{config}->{host} }
+        ],
+        [
+            "port|P=i",
+            "the Elasticsearch port to connect to (default:9200)",
+            { default => 9200 }
+        ],
+        [
+            "prefix=s",
+            "index name prefix, don't forget the trailing `-`",
+            { required => 1, default => $app->{config}->{prefix} }
+        ],
         [
             "timezone|t=s",
             "timezone to use for `from` and `to` fields (default: UTC)",
