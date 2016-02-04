@@ -36,7 +36,7 @@ sub config {
     my $app = shift;
     my $config ||= Config::Any->load_files(
         {
-            files   => [qw(config.yml)],
+            files   => [ $app->get_config_files ],
             use_ext => 1,
             force_plugins =>
               [qw(Config::Any::General Config::Any::JSON Config::Any::YAML)]
@@ -44,6 +44,15 @@ sub config {
     );
 
     $app->{config} = $config->[0]->{'config.yml'};
+}
+
+sub get_config_files {
+    my $self = shift;
+    my @config_files;
+
+    push @config_files, 'config.yml';
+
+    return @config_files;
 }
 
 1;
