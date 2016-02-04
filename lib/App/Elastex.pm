@@ -20,7 +20,10 @@ sub global_opt_spec {
 
 sub config {
     my $app = shift;
-    my $config ||= Config::Any->load_files(
+
+    return $app->{config} if defined $app->{config};
+
+    my $config = Config::Any->load_files(
         {
             files   => [ $app->get_config_files ],
             use_ext => 0,
