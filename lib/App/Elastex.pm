@@ -43,7 +43,7 @@ sub config {
         }
     );
 
-    $app->{config} = $config->[0]->{'config.yml'};
+    $app->{config} = ( values %{ $config->[0] } )[0];
 }
 
 sub get_config_files {
