@@ -34,8 +34,14 @@ sub global_opt_spec {
 
 sub config {
     my $app = shift;
-    my $config ||=
-      Config::Any->load_files( { files => [qw(config.yml)], use_ext => 1 } );
+    my $config ||= Config::Any->load_files(
+        {
+            files   => [qw(config.yml)],
+            use_ext => 1,
+            force_plugins =>
+              [qw(Config::Any::General Config::Any::JSON Config::Any::YAML)]
+        }
+    );
 
     $app->{config} = $config->[0]->{'config.yml'};
 }
