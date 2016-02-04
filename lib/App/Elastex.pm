@@ -10,6 +10,9 @@ use warnings;
 use App::Cmd::Setup -app;
 
 use Config::Any;
+use Cwd;
+use File::HomeDir;
+use File::Spec;
 
 sub global_opt_spec {
     return ( [ "config|C=s", "configuration file to use" ], );
@@ -37,7 +40,11 @@ sub get_config_files {
         push @config_files, $self->global_options->{config};
     }
     else {
-        push @config_files, 'config.yml';
+        push @config_files, File::Spec->join( cwd(), 'config.yml' );
+        push @config_files,
+          File::Spec->join( File::HomeDir->my_home, '.elastexrc' );
+        push @config_files,
+          File::Spec->join( File::Spec->rootdir, 'etc', 'elastexrc' );
     }
 
     return @config_files;
