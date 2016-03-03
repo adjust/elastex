@@ -20,7 +20,7 @@ sub usage_desc { "elastex pull [options] query" }
 sub opt_spec {
     my ( $self, $app ) = @_;
     return (
-        $self->SUPER::opt_spec(),
+        $self->SUPER::opt_spec($app),
         [
             "output|o=s",
             "output file (default: results)",
