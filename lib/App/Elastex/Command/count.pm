@@ -21,7 +21,7 @@ sub execute {
 
     my @indices = $self->SUPER::compile_indices(
         {
-            prefix   => $self->app->global_options->prefix,
+            prefix   => $opt->prefix,
             from     => $opt->from,
             to       => $opt->to,
             timezone => $opt->timezone,
@@ -32,11 +32,9 @@ sub execute {
     my $index_count = scalar @indices;
     my $total_hit_count;
 
-    my $elastic = Search::Elasticsearch->new(
-        nodes => join( ':',
-            $self->app->global_options->host,
-            $self->app->global_options->port ),
-    );
+    my $elastic =
+      Search::Elasticsearch->new( nodes => join( ':', $opt->host, $opt->port ),
+      );
 
     my $index_progress = Term::ProgressBar->new(
         {
