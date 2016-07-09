@@ -31,6 +31,11 @@ sub opt_spec {
             "batchsize of retrieval (default: 1000)",
             { default => $app->{config}->{batchsize} // 1000 }
         ],
+        [
+            "header!",
+            "write query header to output (default: 1)",
+            { default => $app->{config}->{header} // 1 }
+        ],
     );
 }
 
@@ -66,7 +71,8 @@ sub execute {
     my $total_hit_count = 0;
     open( my $output, ">:encoding(UTF-8)", $opt->{output} );
 
-    say $output "query: `$query`\tindices: `" . join( ' ', @indices ) . "`";
+    say $output "query: `$query`\tindices: `" . join( ' ', @indices ) . "`"
+      if $opt->{header};
 
     for my $index (@indices) {
         my $scroll = $elastic->scroll_helper(
