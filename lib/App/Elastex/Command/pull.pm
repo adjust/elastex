@@ -118,7 +118,7 @@ sub execute {
         }
     }
 
-    say 'No results found.' if $total_hit_count == 0;
+    say STDERR 'No results found.' if $total_hit_count == 0;
 }
 
 1;
