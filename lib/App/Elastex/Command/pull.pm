@@ -24,12 +24,12 @@ sub opt_spec {
         [
             "output|o=s",
             "output file (default: results)",
-            { default => "results" }
+            { default => $app->{config}->{output} // "results" }
         ],
         [
             "batchsize=i",
             "batchsize of retrieval (default: 1000)",
-            { default => 1000 }
+            { default => $app->{config}->{batchsize} // 1000 }
         ],
     );
 }
