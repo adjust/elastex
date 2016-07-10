@@ -69,7 +69,14 @@ sub execute {
 
     my $indices_pulled  = 0;
     my $total_hit_count = 0;
-    open( my $output, ">:encoding(UTF-8)", $opt->{output} );
+    my $output;
+
+    if ( $opt->{output} eq '-' ) {
+        open( $output, '>&:encoding(UTF-8)', \*STDOUT );
+    }
+    else {
+        open( $output, ">:encoding(UTF-8)", $opt->{output} );
+    }
 
     say $output "query: `$query`\tindices: `" . join( ' ', @indices ) . "`"
       if $opt->{header};
