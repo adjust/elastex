@@ -5,7 +5,7 @@ package App::Elastex;
 use strict;
 use warnings;
 
-our $VERSION = '1.0.0_02';
+our $VERSION = '1.0.0_03';
 
 use App::Cmd::Setup -app;
 
