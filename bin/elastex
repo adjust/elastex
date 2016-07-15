@@ -3,8 +3,6 @@
 use strict;
 use warnings;
 
-# VERSION
-
 use lib 'lib';
 use App::Elastex;
 App::Elastex->run;

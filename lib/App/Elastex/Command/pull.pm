@@ -7,8 +7,6 @@ use warnings;
 use 5.010;
 use autodie;
 
-# VERSION
-
 use App::Elastex -command;
 
 use JSON::MaybeXS;

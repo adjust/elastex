@@ -3,8 +3,6 @@ package App::Elastex::Command;
 use strict;
 use warnings;
 
-# VERSION
-
 use App::Cmd::Setup -command;
 
 use Date::Parse;

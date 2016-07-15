@@ -6,8 +6,6 @@ use strict;
 use warnings;
 use 5.010;
 
-# VERSION
-
 use App::Elastex -command;
 
 use Search::Elasticsearch;
