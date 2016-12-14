@@ -37,6 +37,68 @@ sub opt_spec {
     );
 }
 
+sub query {
+    my ( $elastic, $indices, $query, $opt, $output, $dry_run ) = @_;
+    my $indices_pulled  = 0;
+    my $total_hit_count = 0;
+
+    my $index_progress = Term::ProgressBar->new(
+        {
+            name   => 'indices' . ($dry_run ? ' (count)' : ''),
+            count  => scalar @{$indices},
+            silent => !$opt->{progress},
+        }
+    );
+
+    say $output "query: `$query`\tindices: `" . join( ' ', @{$indices} ) . "`"
+      if !$dry_run && $opt->{header};
+
+    for my $index (@{$indices}) {
+        my $scroll = $elastic->scroll_helper(
+            index       => $index,
+            q           => $query,
+            search_type => 'scan',
+        );
+
+        $indices_pulled  += 1;
+        $total_hit_count += $scroll->total;
+        $index_progress->update($indices_pulled);
+
+        unless ($dry_run) {
+            my $index_count = scalar @{$indices};
+            my $json        = JSON::MaybeXS->new();
+
+            print STDERR "\n";
+
+            my $docs_done     = 0;
+            my $docs_progress = Term::ProgressBar->new(
+                {
+                    name   => 'documents',
+                    count  => $scroll->total,
+                    silent => !$opt->{progress} || $scroll->total == 0,
+                }
+            );
+            $docs_progress->minor(0);
+            $docs_progress->update($docs_done);
+
+            while ( my @docs = $scroll->next( $opt->{batchsize} ) ) {
+                foreach (@docs) {
+                    $docs_done += 1;
+                    say $output $json->encode( $_->{_source} );
+                }
+                $docs_progress->update($docs_done);
+            }
+
+            if ( $indices_pulled < $index_count ) {
+                $docs_progress->update(0);
+                print STDERR "\e[A";
+            }
+        }
+    }
+
+    return $total_hit_count;
+}
+
 sub execute {
     my ( $self, $opt, $args ) = @_;
     my $query = join ' ', @$args;
@@ -50,25 +112,12 @@ sub execute {
         }
     );
 
-    my $index_count = scalar @indices;
-    my $json        = JSON::MaybeXS->new();
-
     my $elastic =
       Search::Elasticsearch->new( nodes => join( ':', $opt->host, $opt->port ),
       );
 
-    my $index_progress = Term::ProgressBar->new(
-        {
-            name   => 'indices',
-            count  => scalar @indices,
-            silent => !$opt->{progress},
-        }
-    );
 
-    my $indices_pulled  = 0;
-    my $total_hit_count = 0;
     my $output;
-
     if ( $opt->{output} eq '-' ) {
         open( $output, '>&:encoding(UTF-8)', \*STDOUT );
     }
@@ -76,47 +125,26 @@ sub execute {
         open( $output, ">:encoding(UTF-8)", $opt->{output} );
     }
 
-    say $output "query: `$query`\tindices: `" . join( ' ', @indices ) . "`"
-      if $opt->{header};
+    # Step 1: Count total number of hits for the specified query.
+    my $total_hit_count = query($elastic, \@indices, $query, $opt, $output, 'dry run');
 
-    for my $index (@indices) {
-        my $scroll = $elastic->scroll_helper(
-            index       => $index,
-            q           => $query,
-            search_type => 'scan',
-        );
+    if ( $total_hit_count > 0 ) {
+        # Step 2: Fire up the actual query upon user confirmation.
+        my $ok;
 
-        $indices_pulled  += 1;
-        $total_hit_count += $scroll->total;
-        $index_progress->update($indices_pulled);
-        print STDERR "\n";
+        say   STDERR "Total hit count for query: $total_hit_count";
+        say   STDERR 'WARNING: Large pull data; if this kills the cluster, goats will haunt you!' if ( $total_hit_count > 10000 );
+        print STDERR 'Do you want to proceed with data pull? (y/n) ';
 
-        my $docs_done     = 0;
-        my $docs_progress = Term::ProgressBar->new(
-            {
-                name   => 'documents',
-                count  => $scroll->total,
-                silent => !$opt->{progress} || $scroll->total == 0,
-            }
-        );
-        $docs_progress->minor(0);
-        $docs_progress->update($docs_done);
-
-        while ( my @docs = $scroll->next( $opt->{batchsize} ) ) {
-            foreach (@docs) {
-                $docs_done += 1;
-                say $output $json->encode( $_->{_source} );
-            }
-            $docs_progress->update($docs_done);
+        chomp ( $ok = <STDIN> );
+        if ( $ok =~ /^y/ ) { # Fire!
+            query($elastic, \@indices, $query, $opt, $output);
+        } else {
+            say STDERR 'Thank you for your kindness.';
         }
-
-        if ( $indices_pulled < $index_count ) {
-            $docs_progress->update(0);
-            print STDERR "\e[A";
-        }
+    } else {
+        say STDERR 'No results found.';
     }
-
-    say STDERR 'No results found.' if $total_hit_count == 0;
 }
 
 1;
