@@ -6,6 +6,7 @@ use strict;
 use warnings;
 use 5.010;
 use autodie;
+use Fcntl;
 
 use App::Elastex -command;
 
@@ -112,10 +113,12 @@ sub execute {
         }
     );
 
+    # Log the query to ~/.elastex_history.
+    sysopen( my $log, glob('~/.elastex_history'), O_WRONLY|O_APPEND|O_CREAT, 0600 ) or die "Failed to open ~/.elastex_history for writing: $!";
+
     my $elastic =
       Search::Elasticsearch->new( nodes => join( ':', $opt->host, $opt->port ),
       );
-
 
     my $output;
     if ( $opt->{output} eq '-' ) {
@@ -137,7 +140,12 @@ sub execute {
         print STDERR 'Do you want to proceed with data pull? (y/n) ';
 
         chomp ( $ok = <STDIN> );
-        if ( $ok =~ /^y/ ) { # Fire!
+        if ( $ok =~ /^y/ ) {
+            # Log the query to the history file.
+            say $log "[${\time}] host:'$opt->{host}:$opt->{port}' prefix:'$opt->{prefix}' period='$opt->{period}' from:'$opt->{from}' to:'$opt->{to}' tz='$opt->{timezone}' batchsize=$opt->{batchsize} hits=$total_hit_count $query";
+            close $log;
+
+            # Fire!
             query($elastic, \@indices, $query, $opt, $output);
         } else {
             say STDERR 'Thank you for your kindness.';
