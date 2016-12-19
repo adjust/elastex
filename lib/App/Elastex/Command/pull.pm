@@ -35,6 +35,11 @@ sub opt_spec {
             "write query header to output (default: 1)",
             { default => $app->{config}->{header} // 1 }
         ],
+        [
+            "limit|l=i",
+            "specify upper limit of total hits for data pull",
+            { required => 1 }
+        ],
     );
 }
 
@@ -132,24 +137,19 @@ sub execute {
     my $total_hit_count = query($elastic, \@indices, $query, $opt, $output, 'dry run');
 
     if ( $total_hit_count > 0 ) {
-        # Step 2: Fire up the actual query upon user confirmation.
-        my $ok;
-
-        say   STDERR "Total hit count for query: $total_hit_count";
-        say   STDERR 'WARNING: Large pull data; if this kills the cluster, goats will haunt you!' if ( $total_hit_count > 10000 );
-        print STDERR 'Do you want to proceed with data pull? (y/n) ';
-
-        chomp ( $ok = <STDIN> );
-        if ( $ok =~ /^y/ ) {
-            # Log the query to the history file.
-            say $log "[${\time}] host:'$opt->{host}:$opt->{port}' prefix:'$opt->{prefix}' period='$opt->{period}' from:'$opt->{from}' to:'$opt->{to}' tz='$opt->{timezone}' batchsize=$opt->{batchsize} hits=$total_hit_count $query";
-            close $log;
-
-            # Fire!
-            query($elastic, \@indices, $query, $opt, $output);
-        } else {
-            say STDERR 'Thank you for your kindness.';
+        # Step 2: Fire up the actual query upon successful limit validation.
+        if ( $total_hit_count > $opt->{limit} ) {
+            say STDERR "Total hit count for query $total_hit_count exceeds limit $opt->{limit}!";
+            say STDERR 'Retry with higher limit, warning: if this kills the cluster, goats will haunt you!';
+            exit 1;
         }
+
+        # Log the query to the history file.
+        say $log "[${\time}] host:'$opt->{host}:$opt->{port}' prefix:'$opt->{prefix}' period='$opt->{period}' from:'$opt->{from}' to:'$opt->{to}' tz='$opt->{timezone}' batchsize=$opt->{batchsize} hits=$total_hit_count $query";
+        close $log;
+
+        # Fire!
+        query($elastic, \@indices, $query, $opt, $output);
     } else {
         say STDERR 'No results found.';
     }
